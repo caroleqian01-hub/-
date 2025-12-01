@@ -1,0 +1,25 @@
+{
+  "name": "指挥舱",
+  "short_name": "指挥舱",
+  "id": "/",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f2027",
+  "theme_color": "#0f2027",
+  "orientation": "portrait",
+  "description": "一个专为ADHD设计的、可视化的财务管理工具。",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
