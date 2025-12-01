@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>指挥舱 v4.2</title>
+    <title>账务指挥舱 v5.1</title>
     <meta name="theme-color" content="#0d1117">
+    
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
-    
+
     <style>
-        /* ... (保留上面的 root 和 body 样式) ... */
         :root {
             --bg-color: #0d1117; --card-bg: #161b22; --text-main: #c9d1d9; --text-sub: #8b949e;
             --accent-blue: #58a6ff; --accent-red: #ff7b72; --accent-orange: #d29922;
@@ -18,66 +18,68 @@
         }
         body { font-family: -apple-system, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 16px; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
         
-        /* ... (保留 dashboard, stat-card 等样式) ... */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .stat-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: center; transition: all 0.3s;}
-        .stat-card.full-width { grid-column: 1 / -1; background: linear-gradient(145deg, #1f2937, #111827); }
-        .stat-label { font-size: 11px; color: var(--text-sub); margin-bottom: 6px; letter-spacing: 0.5px; }
-        .stat-value { font-size: 20px; font-weight: 700; font-family: 'Monaco', monospace; transition: color 0.3s;}
-        .stat-value.big { font-size: 32px; color: #fff; }
-        .credit-stat { background: rgba(188, 140, 255, 0.05); border-color: rgba(188, 140, 255, 0.2); }
-        .credit-stat .stat-value { color: var(--accent-purple); }
+        .stat-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: center; position: relative; }
         
-        /* ... (保留 section-header, debt-list 等样式) ... */
+        .balance-card { border-color: var(--accent-blue); background: rgba(88, 166, 255, 0.05); }
+        .balance-input { background: transparent; border: none; color: #fff; font-size: 24px; font-weight: bold; font-family: 'Monaco', monospace; width: 100%; outline: none; padding: 0; margin-top: 5px; }
+        
+        .gap-card { grid-column: 1 / -1; background: #1c2128; border: 2px solid #333; text-align: center; padding: 20px; }
+        .gap-value { font-size: 36px; font-weight: 800; font-family: 'Monaco', monospace; margin-top: 5px; transition: color 0.3s; }
+        
+        .stat-label { font-size: 11px; color: var(--text-sub); margin-bottom: 6px; letter-spacing: 0.5px; }
+        .stat-value { font-size: 20px; font-weight: 700; font-family: 'Monaco', monospace; }
+        .currency { font-size: 0.6em; margin-right: 2px; opacity: 0.6; font-weight: normal;}
+        
         .section-header { margin: 24px 0 12px 0; padding-left: 10px; border-left: 3px solid var(--accent-blue); font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* List Items */
         .debt-list { list-style: none; padding: 0; margin: 0; }
         .debt-item { background: var(--card-bg); margin-bottom: 10px; padding: 12px; border-radius: 8px; display: flex; align-items: center; border: 1px solid var(--border-color); position: relative; overflow: hidden; transition: all 0.2s; }
-        
-        .checkbox { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--text-sub); margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+        .checkbox { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--text-sub); margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; cursor: pointer; }
         .paid .checkbox { background: var(--accent-green); border-color: var(--accent-green); }
         .checkbox::after { content: '✓'; color: #0d1117; font-size: 14px; font-weight: bold; display: none; }
         .paid .checkbox::after { display: block; }
 
-        .item-content { flex: 1; display: flex; justify-content: space-between; align-items: center; }
-        .item-main { flex: 1; }
-        .item-top { display: flex; align-items: center; margin-bottom: 4px; }
-        .item-name { font-size: 15px; font-weight: 500; margin-right: 8px; }
-        .item-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px; }
+        .item-content { flex: 1; }
+        .item-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .item-name { font-size: 15px; font-weight: 500; }
+        .item-amount { font-size: 16px; font-weight: 700; font-family: 'Monaco', monospace; }
+        .item-sub { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); }
+        .item-tag { font-size: 9px; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
         
         .tag-hard { background: rgba(255, 123, 114, 0.15); color: var(--accent-red); }
         .tag-soft { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
         .tag-expense { background: rgba(210, 153, 34, 0.15); color: var(--accent-orange); }
         .tag-credit { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); }
-
-        .item-sub { font-size: 12px; color: var(--text-sub); }
-        .days-left { margin-left: 8px; color: var(--text-main); }
-        .days-left.warning { color: var(--accent-red); font-weight: bold; }
-        .item-amount { font-size: 16px; font-weight: 700; font-family: 'Monaco', monospace; margin-left: 10px;}
         
-        .debt-item.paid { opacity: 0.4; background: #111; border-color: transparent; }
-        .debt-item.paid .item-name, .debt-item.paid .item-amount { text-decoration: line-through; }
+        .debt-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+        .type-hard::before { background: var(--accent-red); }
+        .type-soft::before { background: var(--accent-green); }
+        .type-expense::before { background: var(--accent-orange); }
+        .type-credit::before { background: var(--accent-purple); }
 
-        /* Chart 样式更新 */
-        .chart-container { width: 100%; height: 220px; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); padding: 10px 10px 20px 10px; box-sizing: border-box;}
+        .days-left.warning { color: var(--accent-red); font-weight: bold; }
+        .debt-item.paid { opacity: 0.5; border-color: transparent; }
+        .debt-item.paid .item-name, .debt-item.paid .item-amount { text-decoration: line-through; color: var(--text-sub); }
+
+        /* Chart */
+        .chart-container { width: 100%; height: 200px; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); padding: 10px 10px 20px 10px; box-sizing: border-box;}
         svg { width: 100%; height: 100%; overflow: visible; }
         .chart-line { fill: none; stroke-width: 2; stroke-linecap: round; }
-        .line-total { stroke: var(--accent-blue); } /* 蓝线：总债 */
-        .line-monthly { stroke: var(--accent-green); } /* 绿线：月供 */
-        
+        .line-total { stroke: var(--accent-blue); } 
+        .line-monthly { stroke: var(--accent-green); }
+        .chart-text { fill: var(--text-sub); font-size: 10px; text-anchor: middle; }
+        .chart-val { font-size: 9px; text-anchor: middle; font-weight: bold; }
+        .chart-legend { display: flex; gap: 15px; justify-content: center; margin-bottom: 10px; font-size: 11px; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
         .chart-dot { fill: var(--bg-color); stroke-width: 2; }
         .dot-total { stroke: var(--accent-blue); }
         .dot-monthly { stroke: var(--accent-green); }
-        
-        .chart-text { fill: var(--text-sub); font-size: 10px; text-anchor: middle; }
-        .chart-val { font-size: 9px; text-anchor: middle; font-weight: bold; }
         .val-total { fill: var(--accent-blue); }
         .val-monthly { fill: var(--accent-green); }
 
-        .chart-legend { display: flex; gap: 15px; justify-content: center; margin-bottom: 10px; font-size: 11px; }
-        .legend-item { display: flex; align-items: center; }
-        .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
-
-        /* ... (保留 Calendar, Modal, Toast 等样式) ... */
+        /* Calendar */
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 20px; background: var(--card-bg); padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); }
         .cal-header { font-size: 10px; text-align: center; color: var(--text-sub); margin-bottom: 5px; }
         .cal-day { aspect-ratio: 0.9; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; border-radius: 4px; font-size: 12px; padding-top: 4px; background: #21262d; color: #555; position: relative;}
@@ -91,6 +93,7 @@
         .dot-soft { background: var(--accent-green); }
         .dot-expense { background: var(--accent-orange); }
 
+        /* Modal */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.open { display: flex; }
         .modal-content { background: #1c2128; width: 90%; max-height: 85vh; border-radius: 16px; padding: 20px; overflow-y: auto; border: 1px solid var(--border-color); }
@@ -110,22 +113,34 @@
 <body>
 
     <div class="top-bar">
-        <div style="font-weight:bold; font-size:18px;">账务指挥舱 v4.2</div>
+        <div style="font-weight:bold; font-size:18px;">账务指挥舱 v5.1</div>
         <div onclick="openAdmin()" style="cursor:pointer; padding:5px;">⚙️ 配置</div>
     </div>
 
     <div class="dashboard">
-        <div class="stat-card full-width">
-            <div class="stat-label">硬负债剩余 (HARD DEBT)</div>
-            <div class="stat-value big" id="totalHardDebt">0</div>
+        <div class="stat-card balance-card">
+            <div class="stat-label">当前账户余额 (BALANCE)</div>
+            <div style="display:flex; align-items:center;">
+                <span style="font-size:20px; font-family:'Monaco'; margin-right:2px;">¥</span>
+                <input type="number" id="currentBalance" class="balance-input" placeholder="0.00" oninput="updateGap()">
+            </div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">本月需现金 (CASH NEED)</div>
-            <div class="stat-value" id="monthCash" style="color: var(--accent-red)">0</div>
+            <div class="stat-label">硬负债剩余 (TOTAL DEBT)</div>
+            <div class="stat-value" id="totalHardDebt">0</div>
+        </div>
+        <div class="stat-card gap-card" id="gapCard">
+            <div class="stat-label">本月资金缺口 (THE GAP)</div>
+            <div class="gap-value" id="gapValue">0</div>
+            <div style="font-size:10px; color:#666; margin-top:5px;">余额 - 本月剩余需还</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">本月剩余需还 (REMAINING)</div>
+            <div class="stat-value" id="monthCashRemaining" style="color: var(--accent-red)">0</div>
         </div>
         <div class="stat-card credit-stat">
-            <div class="stat-label">本月信用卡 (CREDIT)</div>
-            <div class="stat-value" id="monthCredit">0</div>
+            <div class="stat-label">下月现金预估 (NEXT MONTH)</div>
+            <div class="stat-value" id="nextMonthCash">0</div>
         </div>
     </div>
 
@@ -171,7 +186,6 @@
     </div>
 
 <script>
-    // 你的配置数据 (保持不变)
     const defaultConfig = [
         ['hard', '洋钱罐8', 2410.89, 1, 4],
         ['hard', '分期乐6', 6931.86, 2, 3],
@@ -204,17 +218,29 @@
 
     let currentConfig = [];
     let allDebts = [];
-    let lastChangedId = null;
+    let userBalance = 0;
 
     function init() {
-        const savedConfig = localStorage.getItem('debt_config_v4');
+        const savedConfig = localStorage.getItem('debt_config_v5');
         currentConfig = savedConfig ? JSON.parse(savedConfig) : JSON.parse(JSON.stringify(defaultConfig));
-        const savedDebts = localStorage.getItem('debt_items_v4');
+        
+        const savedDebts = localStorage.getItem('debt_items_v5');
         if (savedDebts) { allDebts = JSON.parse(savedDebts); } else { generateDebts(); }
+
+        const savedBalance = localStorage.getItem('user_balance_v5');
+        if(savedBalance) {
+            userBalance = parseFloat(savedBalance);
+            document.getElementById('currentBalance').value = userBalance;
+        }
         render();
     }
 
     function generateDebts() {
+        const paidStatusMap = {};
+        allDebts.forEach(d => {
+            paidStatusMap[d.name + d.dueDate] = d.paid;
+        });
+
         allDebts = [];
         let idCounter = 1;
         const startYear = 2025; const startMonth = 12; 
@@ -223,59 +249,76 @@
             let [type, name, totalAmount, day, periods] = loan;
             let amountPerPeriod = totalAmount / periods;
             for (let i = 0; i < periods; i++) {
-                let tY = startYear;
-                let tM = startMonth + i;
+                let tY = startYear; let tM = startMonth + i;
                 while (tM > 12) { tM -= 12; tY++; }
                 let dateStr = `${tY}-${tM.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                
+                const isPaid = paidStatusMap[name + dateStr] || false;
+
                 allDebts.push({
                     id: idCounter++, configIndex: index, name: name, type: type, amount: amountPerPeriod,
-                    dueDate: dateStr, paid: false, periodInfo: `${i+1}/${periods}`
+                    dueDate: dateStr, paid: isPaid, periodInfo: `${i+1}/${periods}`
                 });
             }
         });
         saveDebts();
     }
 
-    // === Render ===
+    function updateGap() {
+        const val = document.getElementById('currentBalance').value;
+        userBalance = val ? parseFloat(val) : 0;
+        localStorage.setItem('user_balance_v5', userBalance);
+        render();
+    }
+
     function render() {
-        const today = new Date();
-        today.setHours(0,0,0,0);
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth() + 1;
+        const todayStr = `${y}-${m.toString().padStart(2, '0')}`;
         
+        let nextM = m + 1; let nextY = y;
+        if (nextM > 12) { nextM = 1; nextY++; }
+        const nextMonthStr = `${nextY}-${nextM.toString().padStart(2, '0')}`;
+
         let totalHard = 0;
-        let monthCash = 0;
-        let monthCredit = 0;
-
-        let displayMonthStr = today.toISOString().slice(0, 7);
-        let displayLabel = "本月";
-        const isLateInMonth = today.getDate() > 20;
-        const hasBillThisMonth = allDebts.some(item => item.dueDate.startsWith(displayMonthStr) && !item.paid);
-
-        if (!hasBillThisMonth || isLateInMonth) {
-            let nextM = today.getMonth() + 2; let nextY = today.getFullYear();
-            if (nextM > 12) { nextM = 1; nextY++; }
-            displayMonthStr = `${nextY}-${nextM.toString().padStart(2, '0')}`;
-            displayLabel = "下月"; 
-        }
+        let monthCashRemaining = 0;
+        let nextMonthCash = 0;
 
         allDebts.forEach(item => {
             if (!item.paid) {
                 if (item.type === 'hard') totalHard += item.amount;
-                if (item.dueDate.startsWith(displayMonthStr)) {
-                    if (['hard', 'soft', 'expense'].includes(item.type)) monthCash += item.amount;
-                    if (item.type === 'credit') monthCredit += item.amount;
+                
+                if (item.dueDate.startsWith(todayStr)) {
+                    if (['hard', 'soft', 'expense'].includes(item.type)) {
+                        monthCashRemaining += item.amount;
+                    }
+                }
+                
+                if (item.dueDate.startsWith(nextMonthStr)) {
+                    if (['hard', 'soft', 'expense'].includes(item.type)) {
+                        nextMonthCash += item.amount;
+                    }
                 }
             }
         });
 
-        document.getElementById('totalHardDebt').innerHTML = `<span class="currency">¥</span>${formatMoney(totalHard)}`;
-        document.getElementById('monthCash').innerHTML = `<span class="currency">¥</span>${formatMoney(monthCash)}`;
-        document.getElementById('monthCash').previousElementSibling.innerText = `${displayLabel}需现金 (${displayMonthStr})`;
-        document.getElementById('monthCredit').innerHTML = `<span class="currency">¥</span>${formatMoney(monthCredit)}`;
-        document.getElementById('monthCredit').previousElementSibling.innerText = `${displayLabel}信用卡 (${displayMonthStr})`;
+        const gap = userBalance - monthCashRemaining;
+        const gapEl = document.getElementById('gapValue');
+        const gapCard = document.getElementById('gapCard');
+        if (gap >= 0) {
+            gapEl.innerHTML = `+${formatMoney(gap)}`; gapEl.style.color = '#3fb950'; gapCard.style.borderColor = '#3fb950';
+        } else {
+            gapEl.innerHTML = `-${formatMoney(Math.abs(gap))}`; gapEl.style.color = '#ff7b72'; gapCard.style.borderColor = '#ff7b72';
+        }
 
-        renderLists(today);
-        renderChart(today, totalHard);
-        renderCalendar(today);
+        document.getElementById('totalHardDebt').innerHTML = `<span class="currency">¥</span>${formatMoney(totalHard)}`;
+        document.getElementById('monthCashRemaining').innerHTML = `<span class="currency">¥</span>${formatMoney(monthCashRemaining)}`;
+        document.getElementById('nextMonthCash').innerHTML = `<span class="currency">¥</span>${formatMoney(nextMonthCash)}`;
+
+        renderLists(now);
+        renderChart(now, totalHard);
+        renderCalendar(now);
     }
 
     function renderLists(today) {
@@ -290,12 +333,21 @@
         let urgentCount = 0;
         allDebts.forEach(item => {
             const dDate = new Date(item.dueDate); dDate.setHours(0,0,0,0);
-            const diffDays = Math.ceil((dDate - today) / (1000 * 60 * 60 * 24));
+            const tDate = new Date(); tDate.setHours(0,0,0,0);
+            const diffDays = Math.ceil((dDate - tDate) / (1000 * 60 * 60 * 24));
             
-            const isUrgent = !item.paid && diffDays <= 7 && diffDays >= -30 && item.type !== 'credit';
-            const html = createCard(item, diffDays);
+            let showInUrgent = false;
+            
+            if (!item.paid) {
+                if (diffDays <= 7 && diffDays >= -30) showInUrgent = true;
+            } else {
+                if (diffDays <= 7 && diffDays >= 0) showInUrgent = true;
+            }
+            
+            if (item.type === 'credit') showInUrgent = false;
 
-            if (isUrgent) { urgentList.innerHTML += html; urgentCount++; }
+            const html = createCard(item, diffDays);
+            if (showInUrgent) { urgentList.innerHTML += html; urgentCount++; }
             if (allList.children.length < 100) allList.innerHTML += html;
         });
         if (urgentCount === 0) urgentList.innerHTML = '<div style="text-align:center; padding:15px; color:#666; font-size:13px;">无紧急待还</div>';
@@ -310,97 +362,46 @@
             <div class="checkbox"></div>
             <div class="item-content">
                 <div class="item-main">
-                    <div class="item-top">
-                        <span class="item-tag tag-${item.type}">${tagNames[item.type]}</span>
+                    <div style="display:flex; align-items:center;">
                         <span class="item-name">${item.name}</span>
-                        <span style="font-size:10px; color:#666;">${item.periodInfo}</span>
+                        <span class="item-tag tag-${item.type}">${tagNames[item.type]}</span>
+                        <span style="font-size:10px; color:#666; margin-left:5px;">${item.periodInfo}</span>
                     </div>
-                    <div class="item-sub"><span>${item.dueDate}</span><span class="days-left ${urgentClass}">${dayText}</span></div>
+                    <div class="item-amount">¥${Math.round(item.amount)}</div>
                 </div>
-                <div class="item-amount">¥${Math.round(item.amount)}</div>
+                <div class="item-sub"><span>${item.dueDate}</span><span class="days-left ${urgentClass}">${dayText}</span></div>
             </div>
         </li>`;
     }
 
-    // === Chart (Dual Line) ===
     function renderChart(today, currentTotalHard) {
-        const points = [];
-        let tempTotal = currentTotalHard;
-        // 筛选未还 Hard
+        const points = []; let tempTotal = currentTotalHard;
         const futureHardDebts = allDebts.filter(d => d.type === 'hard' && !d.paid).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-        // 筛选未还 Monthly Payment (Hard + Soft)
         const futureMonthlyDebts = allDebts.filter(d => (d.type === 'hard' || d.type === 'soft') && !d.paid);
-
         let cM = today.getMonth(); let cY = today.getFullYear();
-        
-        // 初始点 (Month 0)
-        // 计算本月(或下月)的月供作为起点
-        // 为了图表连贯，我们从"下个月"开始画12个点
-        
+        points.push({ label: 'Now', val: tempTotal });
         for(let i=1; i<=12; i++) {
-            let m = cM + i; let y = cY;
-            if(m > 11) { m -= 12; y++; }
+            let m = cM + i; let y = cY; if(m > 11) { m -= 12; y++; }
             let prefix = `${y}-${(m+1).toString().padStart(2,'0')}`;
-            
-            // 1. 计算该月还掉的本金 (Blue Line下降)
             let payHard = futureHardDebts.filter(d => d.dueDate.startsWith(prefix)).reduce((s, d) => s + d.amount, 0);
-            tempTotal -= payHard;
-            if(tempTotal < 0) tempTotal = 0;
-
-            // 2. 计算该月的总月供 (Green Line - Hard + Soft)
+            tempTotal -= payHard; if(tempTotal < 0) tempTotal = 0;
             let payMonthly = futureMonthlyDebts.filter(d => d.dueDate.startsWith(prefix)).reduce((s, d) => s + d.amount, 0);
-
             points.push({ label: `${m+1}月`, total: tempTotal, monthly: payMonthly });
         }
-
         const container = document.getElementById('chartContainer');
-        // Add legend
-        container.innerHTML = `
-            <div class="chart-legend">
-                <div class="legend-item"><div class="legend-dot" style="background:#58a6ff"></div><span>硬负债剩余</span></div>
-                <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div><span>每月应还(债)</span></div>
-            </div>
-        `;
-
-        const svgW = container.clientWidth;
-        const svgH = 160; const pad = 20; const chartH = svgH - pad*2;
-        
-        // Max Scale
-        // Total starts high, Monthly is low. We need two scales or just normalized visibility.
-        // Let's use the max of Total as the global max scale, so Monthly line will be at the bottom but visible context.
-        const maxVal = currentTotalHard || 10000;
-
-        let pathTotal = '';
-        let pathMonthly = '';
-        let elements = '';
-
+        container.innerHTML = `<div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:#58a6ff"></div><span>硬负债剩余</span></div><div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div><span>每月应还(债)</span></div></div>`;
+        const svgW = container.clientWidth; const svgH = 160; const pad = 20; const chartH = svgH - pad*2; const maxVal = currentTotalHard || 10000;
+        let pathTotal = ''; let pathMonthly = ''; let elements = '';
         points.forEach((pt, i) => {
             let x = pad + (i / (points.length - 1)) * (svgW - 2 * pad);
-            
-            // Total Line (Blue)
             let yTotal = svgH - pad - (pt.total / maxVal) * chartH;
             if (i===0) pathTotal = `M ${x} ${yTotal}`; else pathTotal += ` L ${x} ${yTotal}`;
-            
-            // Monthly Line (Green)
-            // Scale hint: Monthly is much smaller (e.g. 15k vs 90k). It will show nicely at bottom.
-            let yMonthly = svgH - pad - (pt.monthly / maxVal) * chartH;
+            let yMonthly = svgH - pad - (pt.monthly / maxVal) * chartH; 
             if (i===0) pathMonthly = `M ${x} ${yMonthly}`; else pathMonthly += ` L ${x} ${yMonthly}`;
-
-            // Dots & Text
             if (i % 2 === 0 || i === points.length - 1) {
-                // Blue Dot
-                elements += `<circle cx="${x}" cy="${yTotal}" r="3" class="chart-dot dot-total" />`;
-                elements += `<text x="${x}" y="${yTotal - 8}" class="chart-val val-total">${(pt.total/1000).toFixed(0)}k</text>`;
-                
-                // Green Dot
-                elements += `<circle cx="${x}" cy="${yMonthly}" r="3" class="chart-dot dot-monthly" />`;
-                elements += `<text x="${x}" y="${yMonthly - 8}" class="chart-val val-monthly">${(pt.monthly/1000).toFixed(1)}k</text>`;
-                
-                // Label
-                elements += `<text x="${x}" y="${svgH - 5}" class="chart-text">${pt.label}</text>`;
+                elements += `<circle cx="${x}" cy="${yTotal}" r="3" class="chart-dot dot-total" /><text x="${x}" y="${yTotal - 8}" class="chart-val val-total">${(pt.total/1000).toFixed(0)}k</text><circle cx="${x}" cy="${yMonthly}" r="3" class="chart-dot dot-monthly" /><text x="${x}" y="${yMonthly - 8}" class="chart-val val-monthly">${(pt.monthly/1000).toFixed(1)}k</text><text x="${x}" y="${svgH - 5}" class="chart-text">${pt.label}</text>`;
             }
         });
-
         container.innerHTML += `<svg viewBox="0 0 ${svgW} ${svgH}"><path d="${pathTotal}" class="chart-line line-total" /><path d="${pathMonthly}" class="chart-line line-monthly" />${elements}</svg>`;
     }
 
@@ -409,21 +410,15 @@
         const daysInM = new Date(y, m + 1, 0).getDate();
         const firstDay = new Date(y, m, 1).getDay();
         const prefix = `${y}-${(m+1).toString().padStart(2, '0')}`;
-
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '<div class="cal-header">日</div><div class="cal-header">一</div><div class="cal-header">二</div><div class="cal-header">三</div><div class="cal-header">四</div><div class="cal-header">五</div><div class="cal-header">六</div>';
-
         for(let i=0; i<firstDay; i++) grid.innerHTML += '<div class="cal-day"></div>';
-
         for(let d=1; d<=daysInM; d++) {
             const dateStr = `${prefix}-${d.toString().padStart(2,'0')}`;
             const items = allDebts.filter(i => i.dueDate === dateStr && !i.paid && ['hard','soft','expense'].includes(i.type));
-            
             let totalAmt = items.reduce((s, i) => s + i.amount, 0);
             let amtHtml = totalAmt > 0 ? `<div class="cal-amt has-cost">${(totalAmt/1000).toFixed(1)}k</div>` : '';
-            let dots = '';
-            items.forEach(i => dots += `<div class="cal-dot dot-${i.type}"></div>`);
-
+            let dots = ''; items.forEach(i => dots += `<div class="cal-dot dot-${i.type}"></div>`);
             let cls = d === today.getDate() ? 'cal-day today active' : 'cal-day active';
             grid.innerHTML += `<div class="${cls}"><span>${d}</span><div class="cal-dot-container">${dots}</div>${amtHtml}</div>`;
         }
@@ -435,11 +430,11 @@
             allDebts[idx].paid = !allDebts[idx].paid;
             lastChangedId = id;
             saveDebts(); render();
-            if (allDebts[idx].paid) showToast();
+            if (allDebts[idx].paid) showToast('已标记完成');
+            else showToast('已撤销完成');
         }
     }
 
-    // 后台管理
     function openAdmin() { document.getElementById('adminModal').className = 'modal open'; renderConfigList(); }
     function closeAdmin() { document.getElementById('adminModal').className = 'modal'; generateDebts(); render(); }
     function renderConfigList() {
@@ -463,16 +458,16 @@
     function delCfg(i) { if(confirm('删?')) { currentConfig.splice(i, 1); saveConfig(); renderConfigList(); } }
     
     function undo() { if (lastChangedId) { toggle(lastChangedId); document.getElementById('toast').className = ''; } }
-    function showToast() { const t = document.getElementById('toast'); t.className = 'show'; setTimeout(() => t.className = '', 2000); }
-    function hardReset() { if(confirm('Reset?')) { localStorage.removeItem('debt_config_v4'); localStorage.removeItem('debt_items_v4'); location.reload(); } }
-    function saveDebts() { localStorage.setItem('debt_items_v4', JSON.stringify(allDebts)); }
-    function saveConfig() { localStorage.setItem('debt_config_v4', JSON.stringify(currentConfig)); }
+    function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toastMsg').innerText = msg; t.className = 'show'; setTimeout(() => t.className = '', 2000); }
+    function hardReset() { if(confirm('Reset?')) { localStorage.removeItem('debt_config_v5'); localStorage.removeItem('debt_items_v5'); localStorage.removeItem('user_balance_v5'); location.reload(); } }
+    function saveDebts() { localStorage.setItem('debt_items_v5', JSON.stringify(allDebts)); }
+    function saveConfig() { localStorage.setItem('debt_config_v5', JSON.stringify(currentConfig)); }
     function formatMoney(n) { return n.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); }
 
+    // ✅ 启动逻辑
     init();
-</script>
-<script>
-    // 注册离线引擎 (Service Worker)
+
+    // ✅ 注册 Service Worker (APK 必须)
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
     }
